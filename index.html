@@ -121,6 +121,14 @@ label{display:block;font-size:13px;font-weight:800;margin:9px 0 5px}input,select
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const sb=window.supabase.createClient("https://mvsrgyhhlmuxidcezfsc.supabase.co","sb_publishable_OgDYInmTWW-FWuFXzq61Iw_WpVyIADj");
+// Listener registrado imediatamente após a criação do cliente para não perder o
+// evento PASSWORD_RECOVERY durante a inicialização automática do Supabase Auth.
+sb.auth.onAuthStateChange((event,session)=>{
+  if(event==="PASSWORD_RECOVERY"){
+    window.__mepRecoverySession=session||null;
+    window.__mepRecoveryDetected=true;
+  }
+});
 let me=null,profile=null,equipamentos=[],fornecedores=[],requisicoes=[];
 const ELITE_LOGO="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARgAAACCCAYAAACdBNcdAAACH0lEQVR4nO3aMS4FURSA4TeiswRR24BER6m2Adt4UWitSUsnsQG1LYh2lOIVyDx/xhvfV89NTjP/PcUd7m4PxhVAYG/uAYDlEhggsz/3AMBuurh+Hb77RmDgn/tJKKYSGPhD3g7Xk84dHZ+tTk7Ps1BMJTAQKLeCXSIwLNLUTWDT5dWNUGxBYJid2365BIYv+fnZxjCOHw95nx7vx5fnhxnHYZMVnV32KTAAv8lLXiAjMEBGYICMwAAZgQEyAgNkBAbICAyQERggIzBARmCAjMAAGYEBMgIDZAQGyAgMkBEYICMwQEZggIzAABmBATICA2QEBsgIDJARGCAjMEBGYICMwAAZgQEyAgNkBAbICAyQERggIzBARmCAjMAAGYEBMgIDZAQGyAgMkBEYICMwQEZggIzAABmBATICA2QEBsgIDJARGCAjMEBGYICMwAAZgQEyAgNkBAbICAyQERggIzBARmCAjMAAGYEBMgIDZAQGyAgMkBEYICMwQEZggIzAABmBATICA2QEBsgIDJARGCAjMEBGYICMwAAZgQEyAgNkBAbICAyQERggIzBARmCAjMAAGYEBMgIDZAQGyAgMkBEYICMwQEZggIzAABmBATICA2QEBsgIDJARGCAjMEBGYICMwAAZgQEyAgNkBAbICAyQERggIzBARmCAjMAAGYEBMgIDZAQGyAgMkBEYICMwQEZggIzAABmBATICA2TeAfMIHkX2KwH3AAAAAElFTkSuQmCC";
 const $=id=>document.getElementById(id),v=id=>$(id)?.value||"";
@@ -130,7 +138,25 @@ function toast(t){$("toast").textContent=t;$("toast").style.display="block";setT
 let realtimeChannel=null;
 function esconderTelasAuth(){["login","termo","primeiroAcesso","recuperacao","redefinirSenha"].forEach(id=>$(id)?.classList.add("hide"))}
 function mostrarRecuperacao(){esconderTelasAuth();$("recuperacao").classList.remove("hide");$("recEmail").value=v("email");$("recMsg").textContent=""}
+function estaEmRecuperacao(){
+  const hash=window.location.hash||"";
+  const qs=new URLSearchParams(window.location.search||"");
+  return qs.get("type")==="recovery" || hash.includes("type=recovery") ||
+    hash.includes("access_token=") || hash.includes("refresh_token=");
+}
+function abrirTelaRedefinicao(){
+  esconderTelasAuth();
+  $("redefinirSenha").classList.remove("hide");
+  $("resetMsg").textContent="Link de recuperação validado. Defina sua nova senha.";
+}
 function voltarLogin(){esconderTelasAuth();$("login").classList.remove("hide");$("loginMsg").textContent=""}
+function tratarRecuperacaoDetectada(){
+  if(window.__mepRecoveryDetected){
+    if(window.__mepRecoverySession?.user)me=window.__mepRecoverySession.user;
+    abrirTelaRedefinicao();
+    window.__mepRecoveryDetected=false;
+  }
+}
 function forcaSenha(p){
   let n=0;if(p.length>=8)n++;if(/[A-Z]/.test(p))n++;if(/[a-z]/.test(p))n++;if(/\d/.test(p))n++;if(/[^A-Za-z0-9]/.test(p))n++;
   return n>=5?"Senha forte":n>=3?"Senha média":"Senha fraca";
@@ -140,7 +166,7 @@ async function enviarRecuperacao(){
   const email=v("recEmail").trim().toLowerCase();
   if(!email)return $("recMsg").textContent="Informe seu e-mail.";
   $("recMsg").textContent="Enviando...";
-  const redirectTo=window.location.origin+window.location.pathname+"#type=recovery";
+  const redirectTo=window.location.origin+window.location.pathname;
   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
   if(error)return $("recMsg").textContent="Não foi possível iniciar a recuperação. Tente novamente.";
   $("recMsg").textContent="Se o e-mail estiver cadastrado, você receberá as instruções de recuperação.";
@@ -152,9 +178,15 @@ async function redefinirSenha(){
   if(forcaSenha(p)==="Senha fraca")return $("resetMsg").textContent="Escolha uma senha mais forte.";
   const {error}=await sb.auth.updateUser({password:p});
   if(error)return $("resetMsg").textContent="Não foi possível atualizar a senha. O link pode ter expirado.";
-  $("resetMsg").textContent="Senha atualizada com sucesso. Entrando no sistema...";
+  $("resetMsg").textContent="Senha atualizada com sucesso. Você será direcionado para o login.";
   history.replaceState(null,"",window.location.pathname);
-  setTimeout(()=>abrirAppComUsuario(me),700);
+  setTimeout(async()=>{
+    await sb.auth.signOut();
+    me=null;profile=null;
+    $("redefinirSenha").classList.add("hide");
+    $("login").classList.remove("hide");
+    $("loginMsg").textContent="Senha redefinida. Entre com sua nova senha.";
+  },900);
 }
 async function alterarMinhaSenha(){
   const p=v("minhaNovaSenha"),c=v("minhaConfSenha");
@@ -193,10 +225,24 @@ async function concluirPrimeiroAcesso(){
   await abrirAppComUsuario(data.user)
 }
 async function iniciarSessaoExistente(){
-  const {data}=await sb.auth.getSession(),user=data?.session?.user;
+  const {data,error}=await sb.auth.getSession();
+  if(error){console.warn("Falha ao recuperar sessão:",error.message);return}
+  const user=data?.session?.user;
+  if(estaEmRecuperacao()){
+    if(user){me=user;abrirTelaRedefinicao();return}
+    // O Supabase pode concluir a sessão de recuperação de forma assíncrona.
+    $("login").classList.add("hide");
+    $("redefinirSenha").classList.remove("hide");
+    $("resetMsg").textContent="Validando o link de recuperação...";
+    setTimeout(async()=>{
+      const s=await sb.auth.getSession();
+      if(s.data?.session?.user){me=s.data.session.user;abrirTelaRedefinicao()}
+      else $("resetMsg").textContent="O link de recuperação expirou ou não é mais válido. Solicite um novo link.";
+    },1200);
+    return;
+  }
   if(user){
     if(location.hash.includes("type=invite")){$("login").classList.add("hide");$("primeiroAcesso").classList.remove("hide")}
-    else if(location.hash.includes("type=recovery")){$("login").classList.add("hide");$("redefinirSenha").classList.remove("hide");me=user}
     else{await abrirAppComUsuario(user)}
   }
 }
@@ -266,8 +312,10 @@ function subscribe(){
 }
 function sair(){sb.auth.signOut();location.reload()}
 sb.auth.onAuthStateChange(async(event,session)=>{
-  if(event==="PASSWORD_RECOVERY"&&session?.user){
-    me=session.user;esconderTelasAuth();$("redefinirSenha").classList.remove("hide");return;
+  if(event==="PASSWORD_RECOVERY"){
+    if(session?.user)me=session.user;
+    abrirTelaRedefinicao();
+    return;
   }
   if(event==="SIGNED_IN"&&session?.user&&location.hash.includes("type=invite")){
     $("login").classList.add("hide");$("primeiroAcesso").classList.remove("hide");return;
@@ -281,4 +329,5 @@ $("resetSenha")?.addEventListener("input",()=>atualizarIndicadorSenha("resetSenh
 $("minhaNovaSenha")?.addEventListener("input",()=>atualizarIndicadorSenha("minhaNovaSenha","minhaSenhaStrength"));
 $("novaSenha")?.addEventListener("input",()=>atualizarIndicadorSenha("novaSenha","primeiroAcessoMsg"));
 iniciarSessaoExistente();
+setTimeout(tratarRecuperacaoDetectada,0);
 </script></body></html>
