@@ -60,10 +60,10 @@ label{display:block;font-size:13px;font-weight:800;margin:9px 0 5px}input,select
 </div></div></section>
 
 <section id="seguranca" class="page">
-<h2>Segurança da conta</h2>
+<h2>⚙️ Configurações</h2>
 <div class="card" style="max-width:620px">
-<h3>🔐 Alterar minha senha</h3>
-<p class="muted">Use uma senha forte e exclusiva para o Manutenção Elite Pro.</p>
+<h3>🔐 Segurança e senha</h3>
+<p class="muted">Todos os usuários, inclusive o Administrador, podem alterar a própria senha por aqui.</p>
 <label>Nova senha</label><input id="minhaNovaSenha" type="password" autocomplete="new-password" minlength="8" placeholder="Mínimo 8 caracteres">
 <label>Confirmar nova senha</label><input id="minhaConfSenha" type="password" autocomplete="new-password" minlength="8" placeholder="Repita a nova senha">
 <div id="minhaSenhaStrength" class="muted" style="font-size:12px;margin-top:5px"></div>
@@ -144,6 +144,8 @@ function estaEmRecuperacao(){
   return qs.get("type")==="recovery" || hash.includes("type=recovery") ||
     hash.includes("access_token=") || hash.includes("refresh_token=");
 }
+function marcarModoRecuperacao(){window.__mepRecoveryMode=true}
+function estaNoModoRecuperacao(){return window.__mepRecoveryMode===true}
 function abrirTelaRedefinicao(){
   esconderTelasAuth();
   $("redefinirSenha").classList.remove("hide");
@@ -182,7 +184,7 @@ async function redefinirSenha(){
   history.replaceState(null,"",window.location.pathname);
   setTimeout(async()=>{
     await sb.auth.signOut();
-    me=null;profile=null;
+    me=null;profile=null;window.__mepRecoveryMode=false;
     $("redefinirSenha").classList.add("hide");
     $("login").classList.remove("hide");
     $("loginMsg").textContent="Senha redefinida. Entre com sua nova senha.";
@@ -201,6 +203,7 @@ async function alterarMinhaSenha(){
 async function cadastrar(){return $("loginMsg").textContent="O acesso é criado pelo Administrador. Solicite seu convite por e-mail ao responsável pelo sistema."}
 async function abrirAppComUsuario(user){
   me=user;
+  if(estaNoModoRecuperacao()){abrirTelaRedefinicao();return}
   let r=await sb.from("profiles").select("*").eq("id",me.id).single();
   profile=r.data||{nome:me.user_metadata?.nome||me.email,role:me.user_metadata?.role||"mecanico",termo_uso_aceito:false};
   esconderTelasAuth();
@@ -229,14 +232,14 @@ async function iniciarSessaoExistente(){
   if(error){console.warn("Falha ao recuperar sessão:",error.message);return}
   const user=data?.session?.user;
   if(estaEmRecuperacao()){
-    if(user){me=user;abrirTelaRedefinicao();return}
+    if(user){me=user;marcarModoRecuperacao();abrirTelaRedefinicao();return}
     // O Supabase pode concluir a sessão de recuperação de forma assíncrona.
     $("login").classList.add("hide");
     $("redefinirSenha").classList.remove("hide");
     $("resetMsg").textContent="Validando o link de recuperação...";
     setTimeout(async()=>{
       const s=await sb.auth.getSession();
-      if(s.data?.session?.user){me=s.data.session.user;abrirTelaRedefinicao()}
+      if(s.data?.session?.user){me=s.data.session.user;marcarModoRecuperacao();abrirTelaRedefinicao()}
       else $("resetMsg").textContent="O link de recuperação expirou ou não é mais válido. Solicite um novo link.";
     },1200);
     return;
@@ -247,7 +250,7 @@ async function iniciarSessaoExistente(){
   }
 }
 
-function buildNav(){let a=[["dashboard","Dashboard"],["ordens","OS"],["seguranca","🔐 Minha senha"]];
+function buildNav(){let a=[["dashboard","Dashboard"],["ordens","OS"],["seguranca","⚙️ Configurações"]];
 if(["mecanico","gerencia","administrador"].includes(profile.role))a.push(["nova","+ Nova OS"]);
 if(["mecanico","gerencia","almoxarife","administrador"].includes(profile.role))a.push(["req","Requisições"]);
 if(["gerencia","compras","administrador"].includes(profile.role))a.push(["compras","Compras"]);
@@ -314,6 +317,7 @@ function sair(){sb.auth.signOut();location.reload()}
 sb.auth.onAuthStateChange(async(event,session)=>{
   if(event==="PASSWORD_RECOVERY"){
     if(session?.user)me=session.user;
+    marcarModoRecuperacao();
     abrirTelaRedefinicao();
     return;
   }
