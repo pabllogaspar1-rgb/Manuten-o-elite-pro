@@ -169,9 +169,19 @@ async function enviarRecuperacao(){
   if(!email)return $("recMsg").textContent="Informe seu e-mail.";
   $("recMsg").textContent="Enviando...";
   const redirectTo=window.location.origin+window.location.pathname;
-  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
-  if(error)return $("recMsg").textContent="Não foi possível iniciar a recuperação. Tente novamente.";
-  $("recMsg").textContent="Se o e-mail estiver cadastrado, você receberá as instruções de recuperação.";
+  try{
+    const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
+    if(error){
+      console.error("[Manutenção Elite Pro] Erro resetPasswordForEmail:", error);
+      const detalhe=[error.code,error.status,error.message].filter(Boolean).join(" | ");
+      $("recMsg").textContent="Falha na recuperação: "+(detalhe||"erro não identificado")+".";
+      return;
+    }
+    $("recMsg").textContent="Se o e-mail estiver cadastrado, você receberá as instruções de recuperação.";
+  }catch(e){
+    console.error("[Manutenção Elite Pro] Exceção na recuperação:", e);
+    $("recMsg").textContent="Falha na recuperação: "+(e?.message||"erro não identificado")+".";
+  }
 }
 async function redefinirSenha(){
   const p=v("resetSenha"),c=v("resetConfSenha");
