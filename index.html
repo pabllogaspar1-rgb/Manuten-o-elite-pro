@@ -9,44 +9,7 @@ nav{display:flex;gap:7px;padding:9px;background:#fff;border-bottom:1px solid #d9
 button{border:0;border-radius:10px;padding:10px 13px;font-weight:800;cursor:pointer}.nav{background:#edf2f7}.nav.active,.primary{background:#1769e0;color:#fff}.success{background:#16a34a;color:#fff}.warning{background:#f59e0b}.danger{background:#dc2626;color:#fff}
 main{max-width:1150px;margin:auto;padding:18px}.page{display:none}.page.active{display:block}.card{background:#fff;border:1px solid #dce4eb;border-radius:15px;padding:16px;margin:12px 0;box-shadow:0 4px 14px #0b1f3310}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}.kpi{background:#fff;border:1px solid #dce4eb;border-top:4px solid #1769e0;border-radius:15px;padding:16px}.kpi b{display:block;font-size:28px;margin-top:5px}
 label{display:block;font-size:13px;font-weight:800;margin:9px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font-size:15px}textarea{min-height:90px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.status{background:#edf2f7;border-radius:20px;padding:5px 9px;font-size:12px;font-weight:800}.os{border-left:5px solid #1769e0}.muted{color:#64748b}.thumb{width:90px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #ddd;margin:3px}.login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#061a2b}.loginbox{width:min(430px,92%);background:#fff;padding:27px;border-radius:18px}.hide{display:none!important}.toast{position:fixed;right:15px;bottom:15px;background:#061a2b;color:#fff;padding:13px 16px;border-radius:12px;display:none}
-</style>
-<style id="elite-final-ux">
-.quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}
-.quick-btn{border:0;border-radius:14px;padding:16px 12px;font-weight:700;cursor:pointer;background:#f3f4f6;color:#111827}
-.quick-btn small{display:block;font-weight:500;margin-top:4px;opacity:.7}
-.alert-panel{border-radius:14px;padding:14px;margin:12px 0;background:#fff7ed;border:1px solid #fed7aa}
-.alert-panel h3{margin:0 0 8px}.alert-item{padding:8px 0;border-bottom:1px solid #eee}.alert-item:last-child{border-bottom:0}
-.search-all{width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:12px;padding:13px 14px;margin:8px 0 14px;font-size:15px}
-@media(max-width:720px){.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-btn{padding:14px 8px}}
-</style>
-</head><body>
-<section id="elite-final-home" style="display:none">
-  <div class="quick-grid">
-    <button class="quick-btn" onclick="window.eliteGo && eliteGo('os')">🔧 Nova OS<small>Registrar manutenção</small></button>
-    <button class="quick-btn" onclick="window.eliteGo && eliteGo('req')">📋 Requisições<small>Solicitar material</small></button>
-    <button class="quick-btn" onclick="window.eliteGo && eliteGo('estoque')">📦 Almoxarifado<small>Consultar estoque</small></button>
-    <button class="quick-btn" onclick="window.eliteGo && eliteGo('compras')">🛒 Compras<small>Cotações e pedidos</small></button>
-  </div>
-  <input id="elite-global-search" class="search-all" placeholder="🔎 Buscar OS, TAG, material ou requisição..." oninput="window.eliteGlobalSearch && eliteGlobalSearch(this.value)">
-  <div id="elite-alerts" class="alert-panel"><h3>🔔 Atenção</h3><div id="elite-alert-list">Carregando...</div></div>
-</section>
-<script>
-window.eliteGo=function(target){
-  const map={os:'os',req:'requisicoes',estoque:'estoque',compras:'compras'};
-  const key=map[target]||target;
-  const buttons=[...document.querySelectorAll('button,a')];
-  const b=buttons.find(x=>(x.textContent||'').toLowerCase().includes(key));
-  if(b) b.click();
-};
-window.eliteGlobalSearch=function(q){
-  q=(q||'').trim().toLowerCase();
-  document.querySelectorAll('table tbody tr,.card,.item,.list-item').forEach(el=>{
-    if(!q){el.style.display='';return}
-    el.style.display=(el.textContent||'').toLowerCase().includes(q)?'':'none';
-  });
-};
-</script>
-
+</style></head><body>
 <div id="login" class="login"><div class="loginbox">
 <h1>🔧 Manutenção Elite Pro</h1><p class="muted">V15 • Gestão de Manutenção + Compras + Estoque</p>
 <label>E-mail</label><input id="email" type="email">
@@ -106,6 +69,10 @@ window.eliteGlobalSearch=function(q){
 <div class="card"><h3>4. Pedidos de compra</h3><div id="lped"></div></div>
 </section>
 
+<section id="usuarios" class="page"><h2>👥 Usuários</h2>
+<div class="card"><h3>Novo usuário</h3><p class="muted">Somente administradores podem criar usuários.</p><div class="grid"><div><label>Nome</label><input id="unome" placeholder="Nome do usuário"></div><div><label>E-mail</label><input id="uemail" type="email" placeholder="email@empresa.com"></div><div><label>Senha inicial</label><input id="usenha" type="password" minlength="6" placeholder="Mínimo 6 caracteres"></div><div><label>Função</label><select id="urole"><option value="mecanico">🔧 Mecânico</option><option value="contratador">📋 Contratador</option><option value="administrador">👑 Administrador</option></select></div></div><br><button class="primary" onclick="criarUsuario()">Cadastrar usuário</button></div>
+<div class="card"><h3>Usuários cadastrados</h3><input id="buscaUsuario" placeholder="🔎 Buscar por nome ou função" oninput="renderUsuarios()"><div id="lusuarios"></div></div></section>
+
 <section id="equip" class="page"><h2>Equipamentos</h2><div class="card">
 <label>TAG</label><input id="tag"><label>Equipamento</label><input id="en"><label>Modelo</label><input id="em"><label>Fabricante</label><input id="ef"><label>Horímetro</label><input id="eh" type="number">
 <br><button class="primary" onclick="addEquip()">Cadastrar</button></div><div id="leq"></div></section>
@@ -121,7 +88,7 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&
 function toast(t){$("toast").textContent=t;$("toast").style.display="block";setTimeout(()=>$("toast").style.display="none",2300)}
 async function cadastrar(){const email=v("email"),password=v("senha");if(!email||!password)return $("loginMsg").textContent="Informe e-mail e senha.";const {error}=await sb.auth.signUp({email,password,data:{nome:email.split("@")[0],role:"mecanico"}});$("loginMsg").textContent=error?error.message:"Acesso criado. Confirme o e-mail, se solicitado."}
 async function entrar(){const {data,error}=await sb.auth.signInWithPassword({email:v("email"),password:v("senha")});if(error)return $("loginMsg").textContent=error.message;me=data.user;let r=await sb.from("profiles").select("*").eq("id",me.id).single();profile=r.data||{nome:me.email,role:"mecanico"};$("login").classList.add("hide");$("app").classList.remove("hide");buildNav();await render();subscribe()}
-function buildNav(){let a=[["dashboard","Dashboard"],["ordens","OS"]];if(profile.role!="contratador")a.push(["nova","+ Nova OS"]);if(profile.role!="mecanico")a.push(["req","Requisições"]);if(profile.role!="mecanico")a.push(["compras","Compras"]);if(profile.role!="mecanico")a.push(["estoque","Estoque"]);if(profile.role=="administrador")a.push(["equip","Equipamentos"]);a.push(["sair","Sair"]);$("nav").innerHTML=a.map((x,i)=>`<button class="nav ${i==0?"active":""}" onclick="${x[0]=="sair"?"sair()":`show('${x[0]}',this)`}">${x[1]}</button>`).join("")}
+function buildNav(){let a=[["dashboard","Dashboard"],["ordens","OS"]];if(profile.role!="contratador")a.push(["nova","+ Nova OS"]);if(profile.role!="mecanico")a.push(["req","Requisições"]);if(profile.role!="mecanico")a.push(["compras","Compras"]);if(profile.role!="mecanico")a.push(["estoque","Estoque"]);if(profile.role=="administrador"){a.push(["equip","Equipamentos"]);a.push(["usuarios","Usuários"])}a.push(["sair","Sair"]);$("nav").innerHTML=a.map((x,i)=>`<button class="nav ${i==0?"active":""}" onclick="${x[0]=="sair"?"sair()":`show('${x[0]}',this)`}">${x[1]}</button>`).join("")}
 function show(id,b){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active"));b.classList.add("active");render()}
 async function loadEquip(){let {data}=await sb.from("equipamentos").select("*").eq("ativo",true).order("tag");equipamentos=data||[];if($("eq"))$("eq").innerHTML='<option value="">Selecione...</option>'+equipamentos.map(e=>`<option value="${e.id}">${esc(e.tag)} — ${esc(e.nome)}</option>`).join("")}
 async function openOS(){if(!v("eq"))return alert("Selecione o equipamento.");let {data,error}=await sb.from("ordens_servico").insert({equipamento_id:v("eq"),tipo:v("tp"),prioridade:v("pr"),horimetro:v("hr")||null,descricao:v("ds"),mecanico_id:me.id}).select().single();if(error)return alert(error.message);toast("OS #"+data.numero+" aberta");$("ds").value="";show("ordens",document.querySelectorAll(".nav")[1])}
@@ -145,6 +112,11 @@ async function carregarPedidos(){let {data}=await sb.from("pedidos_compra").sele
 async function loadDashboard(){let {data}=await sb.from("vw_dashboard_indicadores").select("*").single();if(data){$("kd_eq").textContent=data.equipamentos_ativos??0;$("kd_os").textContent=data.os_pendentes??0;$("kd_req").textContent=data.requisicoes_pendentes??0;$("kd_pc").textContent=data.pedidos_compra_pendentes??0;$("kd_low").textContent=data.materiais_estoque_baixo??0}}
 async function loadEstoque(){let {data}=await sb.from("vw_estoque").select("*").order("descricao");window.materiais=data||[];$('ke_mat').textContent=window.materiais.filter(m=>m.ativo).length;$('ke_low').textContent=window.materiais.filter(m=>m.ativo&&m.estoque_baixo).length;if($('movmat'))$('movmat').innerHTML='<option value="">Selecione...</option>'+window.materiais.filter(m=>m.ativo).map(m=>`<option value="${m.id}">${esc(m.codigo||'-')} — ${esc(m.descricao)} (saldo ${m.saldo})</option>`).join('');renderEstoque()}
 function renderEstoque(){if(!$('lestoque'))return;let q=(v('buscaMat')||'').toLowerCase();let arr=(window.materiais||[]).filter(m=>[m.codigo,m.descricao,m.referencia,m.localizacao].some(x=>String(x||'').toLowerCase().includes(q)));$('lestoque').innerHTML=arr.map(m=>`<div class="card" style="border-left:5px solid ${m.estoque_baixo?'#dc2626':'#16a34a'}"><div class="row"><div><b>${esc(m.descricao)}</b><div class="muted">Código: ${esc(m.codigo||'-')} • Ref.: ${esc(m.referencia||'-')} • Local: ${esc(m.localizacao||'-')}</div></div><span class="status">Saldo: ${m.saldo} ${esc(m.unidade)}</span></div><p>Estoque mínimo: ${m.estoque_minimo} ${esc(m.unidade)} ${m.estoque_baixo?'• ⚠️ ABAIXO DO MÍNIMO':'• OK'}</p></div>`).join('')||'<p class="muted">Nenhum material encontrado.</p>'}
+async function criarUsuario(){if(profile?.role!=="administrador")return alert("Sem permissão.");let nome=v("unome").trim(),email=v("uemail").trim(),password=v("usenha"),role=v("urole");if(!nome||!email||!password)return alert("Preencha nome, e-mail e senha.");if(password.length<6)return alert("A senha deve ter pelo menos 6 caracteres.");let {data,error}=await sb.functions.invoke("admin-criar-usuario",{body:{nome,email,password,role}});if(error)return alert(error.message||"Não foi possível criar o usuário.");if(data?.error)return alert(data.error);toast("Usuário cadastrado: "+nome);["unome","uemail","usenha"].forEach(x=>$(x).value="");await carregarUsuarios()}
+async function carregarUsuarios(){if(profile?.role!=="administrador")return;let {data,error}=await sb.from("profiles").select("id,nome,role,ativo,created_at").order("nome");if(error)return;window.usuarios=data||[];renderUsuarios()}
+function renderUsuarios(){if(!$('lusuarios'))return;let q=(v('buscaUsuario')||'').toLowerCase();let arr=(window.usuarios||[]).filter(u=>[u.nome,u.role].some(x=>String(x||'').toLowerCase().includes(q)));$('lusuarios').innerHTML=arr.map(u=>`<div class="card"><div class="row"><div><b>${esc(u.nome||'Sem nome')}</b><div class="muted">${esc(u.role)}</div></div><span class="status">${u.ativo?'🟢 ATIVO':'🔴 INATIVO'}</span></div><br><div class="grid"><div><label>Função</label><select onchange="alterarUsuario('${u.id}',this.value,null)"><option value="mecanico" ${u.role==='mecanico'?'selected':''}>🔧 Mecânico</option><option value="contratador" ${u.role==='contratador'?'selected':''}>📋 Contratador</option><option value="administrador" ${u.role==='administrador'?'selected':''}>👑 Administrador</option></select></div><div style="display:flex;align-items:end"><button class="${u.ativo?'danger':'success'}" onclick="alterarUsuario('${u.id}',null,${!u.ativo})">${u.ativo?'Desativar':'Ativar'}</button></div></div></div>`).join('')||'<p class="muted">Nenhum usuário encontrado.</p>'}
+async function alterarUsuario(id,role,ativo){let patch={};if(role)patch.role=role;if(typeof ativo==='boolean')patch.ativo=ativo;if(!Object.keys(patch).length)return;let {error}=await sb.from('profiles').update(patch).eq('id',id);if(error)return alert(error.message);toast('Usuário atualizado');carregarUsuarios()}
+
 async function addMaterial(){if(profile.role==='mecanico')return alert('Sem permissão.');if(!v('mdesc'))return alert('Informe a descrição.');let {error}=await sb.from('materiais').insert({codigo:v('mcod')||null,descricao:v('mdesc'),referencia:v('mref')||null,unidade:v('mun')||'UN',estoque_minimo:Number(v('mmin')||0),localizacao:v('mloc')||null});if(error)alert(error.message);else{toast('Material cadastrado');['mcod','mdesc','mref','mmin','mloc'].forEach(x=>$(x).value='');loadEstoque();loadDashboard()}}
 async function movimentar(){let id=v('movmat'),tipo=v('movtipo'),q=Number(v('movq'));if(!id||!q||q<=0)return alert('Informe material e quantidade.');let {error}= tipo==='ajuste'?await sb.rpc('ajustar_estoque',{p_material_id:id,p_novo_saldo:q,p_observacao:v('movobs')||'Inventário'}):await sb.rpc('registrar_movimentacao_estoque',{p_material_id:id,p_tipo:tipo,p_quantidade:q,p_observacao:v('movobs')||null});if(error)alert(error.message);else{toast('Movimentação registrada');$('movq').value='';$('movobs').value='';await loadEstoque();await loadDashboard()}}
 
@@ -152,7 +124,7 @@ async function render(){if(!me)return;$("who").textContent=`${esc(profile.nome)}
 let cards=[];for(const o of os){let imgs=await fotos(o.id);cards.push(`<div class="card os"><div class="row"><h3>OS #${o.numero} — ${esc(o.equipamentos?.tag||"Sem TAG")}</h3><span class="status">${esc(o.status)}</span></div><p><b>${esc(o.tipo)}</b> • Prioridade: ${esc(o.prioridade)} • Horímetro: ${o.horimetro??"-"}</p><p>${esc(o.descricao)}</p><div>${imgs.join("")}</div><label>Anexar foto da OS</label><input type="file" accept="image/*" capture="environment" onchange="uploadPhoto('${o.id}',this.files[0])"><br>${profile.role=="mecanico"||profile.role=="administrador"?`<button class="primary" onclick="osStatus('${o.id}','em_execucao')">Iniciar</button> <button class="success" onclick="osStatus('${o.id}','concluida')">Finalizar</button>`:""} ${profile.role!="mecanico"?`<button class="warning" onclick="osStatus('${o.id}','aguardando_material')">Aguardar material</button>`:""}</div>`)}
 $("los").innerHTML=cards.join("")||"<div class='card muted'>Nenhuma OS.</div>";
 let {data:req}=await sb.from("requisicoes").select("*,requisicao_itens(*)").order("criado_em",{ascending:false});$("lreq").innerHTML=(req||[]).map(r=>`<div class="card"><div class="row"><h3>REQ #${r.numero}</h3><span class="status">${esc(r.status)}</span></div><p>OS vinculada: ${r.os_id}</p>${(r.requisicao_itens||[]).map(i=>`<p>🔩 ${esc(i.descricao)} • Ref. ${esc(i.referencia||"-")} • Qtd. ${i.quantidade} ${esc(i.unidade)}</p>`).join("")}${profile.role!="mecanico"?`<button class="primary" onclick="reqStatus('${r.id}','em_cotacao')">Em cotação</button> <button class="warning" onclick="reqStatus('${r.id}','comprada')">Comprada</button> <button class="success" onclick="reqStatus('${r.id}','entregue')">Entregue</button>`:""}</div>`).join("")||"<div class='card muted'>Nenhuma requisição.</div>";
-if(profile.role=="administrador"){let {data:e}=await sb.from("equipamentos").select("*").order("tag");$("leq").innerHTML=(e||[]).map(x=>`<div class="card"><b>${esc(x.tag)}</b> — ${esc(x.nome)} — ${esc(x.modelo||"-")} — ${esc(x.fabricante||"-")} — Horímetro ${x.horimetro}</div>`).join("")}
+if(profile.role=="administrador"){let {data:e}=await sb.from("equipamentos").select("*").order("tag");$("leq").innerHTML=(e||[]).map(x=>`<div class="card"><b>${esc(x.tag)}</b> — ${esc(x.nome)} — ${esc(x.modelo||"-")} — ${esc(x.fabricante||"-")} — Horímetro ${x.horimetro}</div>`).join("")};await carregarUsuarios()
 if(profile.role!="mecanico"){await loadFornecedores();await loadReqCompras();await carregarCotacoes();await carregarPedidos();$("kfor").textContent=fornecedores.length}}
 function subscribe(){sb.channel("mep-v11").on("postgres_changes",{event:"*",schema:"public"},()=>render()).subscribe()}
 function sair(){sb.auth.signOut();location.reload()}
